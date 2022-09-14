@@ -24,9 +24,21 @@ async function run() {
     const cars = database.collection("carCollection");
 
     app.get("/cars", async (req, res) => {
+      const page = parseInt(req.query.page);
+      const size = parseInt(req.query.size);
+      console.log(page, size);
       const query = {};
       const cursor = cars.find(query);
-      const result = await cursor.toArray();
+      let result;
+      if (size || page) {
+        result = await cursor
+          .skip(page * size)
+          .limit(size)
+          .toArray();
+      } else {
+        result = await cursor.limit(5).toArray();
+      }
+
       res.send(result);
     });
     app.get("/cars/:id", async (req, res) => {
@@ -59,6 +71,18 @@ async function run() {
       const data = req.body;
       const result = await cars.insertOne(data);
       res.send(result);
+    });
+
+    app.post("/login", async (req, res) => {
+      const email = req.body;
+      console.log(email);
+    });
+
+    app.get("/productCount", async (req, res) => {
+      const query = {};
+      const cursor = cars.find(query);
+      const count = await cursor.count();
+      res.send({ count });
     });
   } finally {
   }
